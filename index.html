@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Al-Qur'an JSON Viewer</title>
+<style>
+  body {
+    font-family: "Poppins", sans-serif;
+    background: #f9fafb;
+    color: #222;
+    margin: 0;
+  }
+  header {
+    background: #0b6b52;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    border-bottom: 4px solid #0a5a44;
+  }
+  header h1 { margin: 0; font-size: 26px; }
+  header p { margin: 6px 0 0; font-size: 15px; opacity: 0.9; }
+
+  #content {
+    padding: 20px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .surah-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    padding: 16px 20px;
+    border-left: 6px solid #0b6b52;
+    transition: 0.3s;
+  }
+  .surah-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  }
+  .surah-card h3 {
+    margin: 0;
+    color: #0b6b52;
+  }
+  .surah-card small { color: #777; }
+
+  .ayat {
+    background: #e7f5ee;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 10px;
+    display: none;
+  }
+  .ayat p {
+    margin: 4px 0;
+    direction: rtl;
+    text-align: right;
+    font-family: "Scheherazade", serif;
+    font-size: 20px;
+  }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 13px;
+    color: #555;
+    border-top: 1px solid #ddd;
+    margin-top: 40px;
+  }
+  footer img {
+    width: 60px;
+    vertical-align: middle;
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>📖 Al-Qur'an JSON Viewer</h1>
+  <p>Menampilkan Surah dan Ayat langsung dari GitHub Releases CDN</p>
+</header>
+
+<div id="content">
+  <div style="text-align:center;color:#888;">Memuat data Al-Qur'an...</div>
+</div>
+
+<footer>
+  <p>Dibuat oleh 
+    <img src="https://github.com/Habibzz01/XbibzAssets-/releases/download/Nexo444/mylogobulat.png" alt="Logo">
+    <br><strong>Xbibz Official</strong> • <em>Islamic Elegant Theme</em>
+  </p>
+</footer>
+
+<script>
+(async function() {
+  const content = document.getElementById("content");
+  const url = "https://github.com/XbibzOfficial777/XbibzAlquranLibrary/releases/download/v1.0/alquran.json";
+
+  try {
+    // 🔒 Gunakan GitHub "raw" proxy agar aman & bebas CORS
+    const proxyUrl = "https://cors.isomorphic-git.org/" + url;
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error("Gagal fetch data");
+    const data = await res.json();
+
+    content.innerHTML = "";
+    data.surah.forEach((s) => {
+      const card = document.createElement("div");
+      card.className = "surah-card";
+      card.innerHTML = `
+        <h3>${s.nomor}. ${s.nama_latin} <small>(${s.nama})</small></h3>
+        <p><strong>Arti:</strong> ${s.arti}</p>
+        <p><strong>Jumlah Ayat:</strong> ${s.jumlah_ayat}</p>
+        <button onclick="toggleAyat(${s.nomor})" 
+          style="background:#0b6b52;color:#fff;border:none;padding:6px 12px;
+                 border-radius:5px;cursor:pointer;">
+          Tampilkan Ayat
+        </button>
+        <div id="ayat-${s.nomor}" class="ayat"></div>
+      `;
+      content.appendChild(card);
+    });
+
+    window.toggleAyat = (no) => {
+      const ayatDiv = document.getElementById("ayat-" + no);
+      if (ayatDiv.style.display === "block") {
+        ayatDiv.style.display = "none";
+        ayatDiv.innerHTML = "";
+      } else {
+        const surah = data.surah.find((x) => x.nomor === no);
+        ayatDiv.innerHTML = surah.ayat.map(
+          (a, i) => `
+          <p>
+            <strong>${i + 1}.</strong> ${a.teksArab}<br>
+            <span style="font-size:14px;color:#444;">${a.teksLatin}</span><br>
+            <em style="color:#0b6b52;">${a.terjemahan}</em>
+          </p>`
+        ).join("");
+        ayatDiv.style.display = "block";
+      }
+    };
+  } catch (err) {
+    console.error(err);
+    content.innerHTML = `<div style="color:red;text-align:center;margin-top:20px;">
+      ⚠️ Gagal memuat data Al-Qur'an<br>
+      <small>Pastikan file alquran.json tersedia dan bisa diakses.</small>
+    </div>`;
+  }
+})();
+</script>
+</body>
+</html>
